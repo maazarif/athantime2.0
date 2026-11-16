@@ -32,12 +32,9 @@
     background-color: var(--bot); overflow: hidden; -webkit-font-smoothing: antialiased;
   }
   /* Full-bleed sky: covers the whole screen, including the home-indicator area on iPhone */
-  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100lvh; min-height: 100%; z-index: 0; pointer-events: none;
+  body::before { content: ""; position: fixed; top: -60px; left: 0; right: 0; bottom: -160px; z-index: 0; pointer-events: none;
     background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%); }
   button { font: inherit; color: inherit; }
-  /* Safari (iOS 26) tints the area under its bottom toolbar from fixed elements at the bottom edge.
-     Give it the sky's bottom colour so that strip blends in instead of showing a solid block. */
-  .edge-bottom { position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom, 0px) + 2px); background: var(--bot); pointer-events: none; z-index: 0; }
   #stars { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 2s; }
   .app { position: relative; height: 100%; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column;
          padding: calc(var(--st) + 14px) 10px calc(var(--sb) + 14px); }
@@ -52,7 +49,7 @@
   .iconbtn:active { transform: scale(.95); }
 
   .sky { position: relative; flex: 1 1 auto; min-height: 190px; margin: -10px -10px 0; }
-  .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+  .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .sky .lbl { position: absolute; bottom: 2px; font-size: 11px; letter-spacing: .08em; color: var(--soft); font-variant-numeric: tabular-nums; }
   .anim .body-g { transition: transform 1.2s ease, opacity 1.2s ease; }
 
@@ -145,7 +142,6 @@
 </style>
 </head>
 <body>
-<div class="edge-bottom" aria-hidden="true"></div>
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="app">
   <header>
@@ -167,14 +163,17 @@
       <polyline id="arc" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 5" stroke-linecap="round"/>
       <line id="horizon" stroke="currentColor" stroke-opacity=".28" stroke-width="1"/>
       <g id="ticks"></g>
-      <g id="moonG" class="body-g">
-        <circle r="57" fill="url(#moonGlow)" id="moonHalo"/>
-        <circle r="30" fill="#fff" fill-opacity=".08" id="moonDark"/>
-        <path id="moonLit" fill="#E6EAEC"/>
-      </g>
-      <g id="sunG" class="body-g">
-        <circle r="80" fill="url(#sunGlow)"/>
-        <circle r="32" fill="#F6F3EA" id="sunDisc"/>
+      <clipPath id="aboveH"><rect id="clipRect" x="-2000" y="-2000" width="5000" height="2000"/></clipPath>
+      <g id="moonHaloG" class="body-g"><circle r="57" fill="url(#moonGlow)" id="moonHalo"/></g>
+      <g id="sunHaloG" class="body-g"><circle r="80" fill="url(#sunGlow)"/></g>
+      <g clip-path="url(#aboveH)">
+        <g id="moonG" class="body-g">
+          <circle r="30" fill="#fff" fill-opacity=".08" id="moonDark"/>
+          <path id="moonLit" fill="#E6EAEC"/>
+        </g>
+        <g id="sunG" class="body-g">
+          <circle r="32" fill="#F6F3EA" id="sunDisc"/>
+        </g>
       </g>
     </svg>
     <span class="lbl" id="riseLbl" style="left:16px"></span>
@@ -561,6 +560,7 @@ function buildArc() {
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   $("horizon").setAttribute("x1", 16); $("horizon").setAttribute("x2", W - 16);
   $("horizon").setAttribute("y1", H - 26); $("horizon").setAttribute("y2", H - 26);
+  $("clipRect").setAttribute("height", 2000 + H - 26);
   if (!S.loc || !today.length) { $("arc").setAttribute("points", ""); $("ticks").innerHTML = ""; $("riseLbl").textContent = $("setLbl").textContent = ""; return; }
   const rise = today[1].time, set = today[4].time; // maghrib ≈ sunset for most methods
   const { lat, lng } = S.loc;
@@ -600,7 +600,7 @@ function drawStars(alpha) {
 function setVar(k, v) { document.documentElement.style.setProperty(k, v); }
 function updateSky() {
   const sunG = $("sunG"), moonG = $("moonG");
-  if (!S.loc) { sunG.style.opacity = 0; moonG.style.opacity = 0; drawStars(.6); return; }
+  if (!S.loc) { ["sunG", "moonG", "sunHaloG", "moonHaloG"].forEach(id => $(id).style.opacity = 0); drawStars(.6); return; }
   const now = nowD(), { lat, lng } = S.loc;
   const sp = project(bodyPos(now, lat, lng, sunCoords)), mp = project(bodyPos(now, lat, lng, moonCoords));
   const [top, mid, bot] = themeFor(sp.alt);
@@ -617,15 +617,18 @@ function updateSky() {
   $("arc").setAttribute("stroke-opacity", light ? ".35" : sp.alt > -6 ? ".3" : ".22");
 
   const fade = alt => Math.max(0, Math.min(1, (alt + 2.5) / 4));
-  sunG.style.transform = `translate(${sp.x}px, ${sp.y}px)`; sunG.style.opacity = fade(sp.alt);
+  const glowFade = alt => Math.max(0, Math.min(1, (alt + 7) / 8)); // glow lingers a little after the disc sets
+  sunG.style.transform = $("sunHaloG").style.transform = `translate(${sp.x}px, ${sp.y}px)`;
+  sunG.style.opacity = sp.alt > -1.5 ? 1 : 0; $("sunHaloG").style.opacity = glowFade(sp.alt) * 0.9;
   const warm = Math.max(0, Math.min(1, sp.alt / 10));
   $("sunDisc").setAttribute("fill", mix("#FFC48A", "#F6F3EA", warm));
   const glow = mix("#FFB070", "#FFF4C8", warm); $("sgs").setAttribute("stop-color", glow); $("sge").setAttribute("stop-color", glow);
 
   const ill = moonIllum(now);
-  moonG.style.transform = `translate(${mp.x}px, ${mp.y}px)`;
+  moonG.style.transform = $("moonHaloG").style.transform = `translate(${mp.x}px, ${mp.y}px)`;
   const dayDim = sp.alt > 0 ? 0.55 : 1;
-  moonG.style.opacity = fade(mp.alt) * (ill.fraction < 0.02 ? 0 : 1);
+  moonG.style.opacity = (mp.alt > -1.5 && ill.fraction >= 0.02) ? 1 : 0;
+  $("moonHaloG").style.opacity = ill.fraction < 0.02 ? 0 : glowFade(mp.alt);
   $("moonLit").setAttribute("d", moonPath(ill.phase, 30, lat < 0));
   $("moonLit").setAttribute("fill-opacity", dayDim);
   $("moonHalo").setAttribute("opacity", sp.alt > 0 ? 0 : 0.3 + ill.fraction * 0.7);
