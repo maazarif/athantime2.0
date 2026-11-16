@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AthanTime 2.0</title>
-<meta name="description" content="Prayer times with a live sky — the sun and moon where they really are.">
-<meta name="theme-color" content="#2C5A78">
+<meta name="description" content="Prayer times with a live sky. The sun and moon sit where they really are.">
+<meta name="theme-color" content="#0C1730">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AthanTime">
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,221 +15,240 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Amiri&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #ffffff;
-    --ink-soft: rgba(255,255,255,.72);
-    --sky-top: #2C5A78;
-    --sky-bot: #4A4577;
-    --sheet: #ffffff;
-    --sheet-ink: #111418;
-    --sheet-soft: #5d6670;
-    --accent: #3B6FA0;
-    --line: #d9dde2;
-    --safe-b: env(safe-area-inset-bottom, 0px);
-    --safe-t: env(safe-area-inset-top, 0px);
+    --top: #0C1730; --mid: #1B2A4E; --bot: #2E2A5A;
+    --ink: #fff; --soft: rgba(255,255,255,.66); --hi: rgba(255,255,255,.10);
+    --accent: #B9C8FF; --line: rgba(255,255,255,.18); --glass: rgba(255,255,255,.08);
+    --sheet: rgba(18,26,46,.97); --switch: #7C93E8;
+    --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; }
   body {
-    font-family: "Jost", "Futura", "Century Gothic", system-ui, sans-serif;
-    color: var(--ink);
-    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bot) 100%);
-    background-attachment: fixed;
-    overflow: hidden;
-    transition: color .8s ease;
+    font-family: "Jost", Futura, "Century Gothic", system-ui, sans-serif; color: var(--ink);
+    background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%) fixed;
+    background-color: var(--top);
+    overflow: hidden; -webkit-font-smoothing: antialiased;
   }
-  #sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  #stars { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity 2s; }
-  .orb { position: absolute; width: var(--orb); height: var(--orb); margin: calc(var(--orb) / -2) 0 0 calc(var(--orb) / -2);
-         transition: left 1.2s ease, top 1.2s ease, opacity 1.2s ease; will-change: left, top; }
-  .orb svg { width: 100%; height: 100%; overflow: visible; display: block; }
-  #sun  { --orb: clamp(96px, 27vw, 150px); }
-  #moon { --orb: clamp(84px, 24vw, 132px); }
+  button { font: inherit; color: inherit; }
+  #stars { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 2s; }
+  .app { position: relative; height: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column;
+         padding: calc(var(--st) + 14px) 10px calc(var(--sb) + 14px); }
+  header { display: flex; justify-content: space-between; align-items: flex-start; padding: 0 4px 0 14px; position: relative; z-index: 2; }
+  .where { display: flex; flex-direction: column; gap: 3px; }
+  .city { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .city svg { width: 13px; height: 13px; }
+  .date { font-size: 13px; color: var(--soft); }
+  .iconbtn { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--glass);
+             display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
+             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .iconbtn:active { transform: scale(.95); }
 
-  main {
-    position: relative; z-index: 1; height: 100%;
-    max-width: 560px; margin: 0 auto;
-    display: flex; flex-direction: column;
-    padding: calc(var(--safe-t) + 22px) 8% calc(var(--safe-b) + 26px);
+  .sky { position: relative; flex: 1 1 auto; min-height: 190px; margin: -10px -10px 0; }
+  .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+  .sky .lbl { position: absolute; bottom: 2px; font-size: 11px; letter-spacing: .08em; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .anim .body-g { transition: transform 1.2s ease, opacity 1.2s ease; }
+
+  .hero { padding: 18px 14px 0; display: flex; flex-direction: column; gap: 4px; }
+  .eyebrow { font-size: 12px; font-weight: 500; letter-spacing: .18em; color: var(--soft); text-transform: uppercase; }
+  .hero-main { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .hero-name { font-size: clamp(46px, 14.5vw, 62px); font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+  .hero-time { font-size: 22px; font-weight: 300; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .progress { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+  .bar { flex: 1 1 auto; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width 1s ease; }
+  .count { font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  ol#list { list-style: none; margin: clamp(14px, 3vh, 28px) 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  ol#list li { display: flex; align-items: center; gap: 10px; height: clamp(44px, 5.6vh, 52px); padding: 0 4px 0 14px; border-radius: 14px; transition: background .4s, opacity .4s; }
+  ol#list li.now { background: var(--hi); }
+  ol#list li.past { opacity: .5; }
+  .dot { width: 6px; height: 6px; border-radius: 3px; flex: none; }
+  li.now .dot { background: var(--accent); }
+  .pname { flex: 1 1 auto; display: flex; align-items: baseline; gap: 10px; font-size: 18px; }
+  .ar { font-family: "Amiri", serif; font-size: 15px; color: var(--soft); }
+  .ptime { font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: .01em; white-space: nowrap; }
+  .ptime small { font-size: 11px; margin-left: 3px; color: var(--soft); }
+  li.now .pname, li.now .ptime { font-weight: 600; }
+  .bell { width: 44px; height: 44px; border: 0; background: none; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+  .bell.off { opacity: .4; }
+  .bell svg { width: 18px; height: 18px; }
+
+  .banner { margin: 16px 6px 0; padding: 14px 16px; border-radius: 16px; background: var(--glass); border: 1px solid var(--line); font-size: 15px; line-height: 1.4; }
+  .banner button { background: none; border: 0; padding: 0; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+  /* ---------- Sheets ---------- */
+  .scrim { position: fixed; inset: 0; background: rgba(5,8,20,.5); z-index: 10; opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; max-width: 480px; margin: 0 auto;
+    max-height: calc(100% - var(--st) - 40px); overflow-y: auto; overscroll-behavior: contain;
+    background: var(--sheet); color: #fff; border-top: 1px solid rgba(255,255,255,.12);
+    border-radius: 30px 30px 0 0; box-shadow: 0 -20px 60px rgba(0,0,0,.4);
+    padding: 10px 16px calc(var(--sb) + 28px); display: flex; flex-direction: column; gap: 22px;
+    transform: translateY(105%); transition: transform .4s cubic-bezier(.2,.8,.2,1); visibility: hidden;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   }
-  header { font-size: 15px; line-height: 1.35; color: var(--ink-soft); letter-spacing: .01em; }
-  header .city { color: var(--ink); font-weight: 600; font-size: 17px; display: flex; align-items: center; gap: 6px; }
-  header .city svg { width: 14px; height: 14px; }
-  .spacer { flex: 1 1 auto; min-height: 20px; }
-
-  .next { margin-bottom: 18px; font-size: 16px; color: var(--ink-soft); min-height: 1.4em; }
-  .next b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  ol#list { list-style: none; margin: 0; padding: 0; }
-  ol#list li {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
-    font-size: clamp(26px, 7.4vw, 34px); font-weight: 500; line-height: 1;
-    padding: clamp(9px, 2.1vh, 16px) 0;
-    transition: font-size .4s ease, font-weight .4s ease, opacity .4s;
-  }
-  ol#list li .t { font-variant-numeric: tabular-nums; }
-  ol#list li .t small { font-size: .5em; font-weight: 500; margin-left: 3px; opacity: .8; }
-  ol#list li.past { opacity: .62; }
-  ol#list li.now { font-weight: 900; font-size: clamp(34px, 9.6vw, 46px); opacity: 1; letter-spacing: -.01em; }
-  ol#list li.now .t small { font-weight: 600; }
-  ol#list li .bell { width: .5em; height: .5em; margin-left: 8px; opacity: .55; vertical-align: middle; display: none; }
-  body.notify ol#list li.on .bell { display: inline-block; }
-
-  .bar { display: flex; justify-content: flex-end; margin-top: clamp(14px, 3vh, 34px); }
-  .pill {
-    font: inherit; font-size: 20px; font-weight: 500; color: #111;
-    background: #fff; border: 0; border-radius: 999px; padding: 10px 30px 11px;
-    box-shadow: 0 6px 22px rgba(20,20,60,.22); cursor: pointer;
-  }
-  .pill:active { transform: scale(.97); }
-
-  .banner {
-    margin-top: 6px; padding: 12px 14px; border-radius: 14px; font-size: 15px;
-    background: rgba(255,255,255,.16); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    color: var(--ink);
-  }
-  .banner button { font: inherit; font-weight: 600; background: none; border: 0; color: inherit; text-decoration: underline; padding: 0; cursor: pointer; }
-
-  /* ---------- Settings sheet ---------- */
-  #scrim { position: fixed; inset: 0; background: rgba(10,14,30,.25); z-index: 5; opacity: 0; pointer-events: none; transition: opacity .3s; }
-  #scrim.open { opacity: 1; pointer-events: auto; }
-  #sheet {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-    max-width: 560px; margin: 0 auto; max-height: 86vh; overflow-y: auto; overscroll-behavior: contain;
-    background: var(--sheet); color: var(--sheet-ink);
-    border-radius: 26px 26px 0 0; padding: 12px 26px calc(var(--safe-b) + 30px);
-    transform: translateY(105%); transition: transform .38s cubic-bezier(.2,.8,.2,1);
-    box-shadow: 0 -10px 40px rgba(0,0,0,.18);
-  }
-  #sheet.open { transform: none; }
-  .handle { width: 64px; height: 6px; border-radius: 3px; background: #1b1b1b; margin: 4px auto 14px; cursor: grab; border: 0; display: block; }
-  #sheet h2 { font-size: 28px; font-weight: 500; margin: 18px 0 8px; display: flex; justify-content: space-between; align-items: center; }
-  #sheet h2:first-of-type { margin-top: 6px; }
-  #sheet label.f { display: block; font-size: 18px; margin: 16px 0 8px; }
-  #sheet .hint { font-size: 13.5px; color: var(--sheet-soft); margin: 6px 0 0; line-height: 1.4; }
-  select, input[type=text] {
-    width: 100%; font: inherit; font-size: 17px; color: var(--sheet-ink);
-    padding: 12px 14px; border: 1.5px solid #8a9098; border-radius: 10px; background: #fff;
-    appearance: none; -webkit-appearance: none;
-  }
-  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23333' stroke-width='2'/%3E%3C/svg%3E");
-           background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
-  select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 17px; }
-  .row + .row { border-top: 1px solid var(--line); }
-  .sw { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 400; color: var(--sheet-soft); cursor: pointer; }
-  .sw input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .sw .track { width: 52px; height: 30px; border-radius: 15px; background: #c9cdd3; position: relative; transition: background .25s; flex: none; }
-  .sw .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .25s; }
-  .sw input:checked + .track { background: var(--accent); }
-  .sw input:checked + .track::after { transform: translateX(22px); }
-  .sw input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .sw input:disabled + .track { opacity: .45; }
-  #results { list-style: none; margin: 6px 0 0; padding: 0; }
-  #results li { padding: 11px 4px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 15.5px; }
-  #results li:active { background: #f2f4f6; }
-  .seg { display: flex; border: 1.5px solid #8a9098; border-radius: 10px; overflow: hidden; }
-  .seg button { flex: 1; font: inherit; font-size: 16px; padding: 10px; border: 0; background: #fff; color: var(--sheet-ink); cursor: pointer; }
-  .seg button + button { border-left: 1.5px solid #8a9098; }
-  .seg button[aria-pressed=true] { background: var(--sheet-ink); color: #fff; }
-  .muted { opacity: .5; pointer-events: none; }
-  .foot { font-size: 12.5px; color: var(--sheet-soft); margin-top: 26px; text-align: center; }
-  .btn-text { font: inherit; font-size: 15px; color: var(--accent); background: none; border: 0; padding: 8px 0; cursor: pointer; font-weight: 500; }
-
+  .sheet.open { transform: none; visibility: visible; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.3); align-self: center; flex: none; border: 0; padding: 0; cursor: pointer; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
+  .sheet h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -.01em; }
+  .done { border: 0; background: rgba(255,255,255,.12); font-size: 15px; font-weight: 500; border-radius: 18px; padding: 8px 16px; min-height: 36px; cursor: pointer; }
+  .group { display: flex; flex-direction: column; gap: 8px; }
+  .gtitle { font-size: 12px; font-weight: 500; letter-spacing: .16em; color: rgba(255,255,255,.55); padding-left: 16px; text-transform: uppercase; }
+  .card { border-radius: 18px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.07); overflow: hidden; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px; font-size: 16px; position: relative; }
+  .row + .row { border-top: 1px solid rgba(255,255,255,.08); }
+  .foot { margin: 0 16px; font-size: 12.5px; line-height: 1.45; color: rgba(255,255,255,.55); }
+  .pick { position: relative; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.66); font-size: 15px; min-height: 44px; max-width: 62%; }
+  .pick span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pick select { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; font-size: 16px; }
+  .pick svg { flex: none; }
+  .seg { display: flex; gap: 2px; padding: 2px; border-radius: 10px; background: rgba(255,255,255,.1); }
+  .seg button { border: 0; border-radius: 8px; padding: 6px 14px; font-size: 14px; background: transparent; color: rgba(255,255,255,.8); cursor: pointer; min-height: 32px; }
+  .seg button[aria-pressed=true] { background: #fff; color: #0C1730; font-weight: 500; }
+  .switch { width: 51px; height: 31px; border-radius: 16px; border: 0; padding: 2px; background: rgba(255,255,255,.18); display: flex; cursor: pointer; flex: none; transition: background .25s; }
+  .switch span { width: 27px; height: 27px; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .25s; }
+  .switch[aria-checked=true] { background: var(--switch); }
+  .switch[aria-checked=true] span { transform: translateX(20px); }
+  .switch:disabled { opacity: .4; }
+  .search { width: 100%; font-size: 16px; color: #fff; background: transparent; border: 0; padding: 14px 0; outline: none; }
+  .search::placeholder { color: rgba(255,255,255,.45); }
+  #results button { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid rgba(255,255,255,.08); background: none; padding: 12px 16px; font-size: 14.5px; color: rgba(255,255,255,.85); cursor: pointer; }
+  .linkbtn { border: 0; background: none; color: var(--switch); font-size: 15px; font-weight: 500; padding: 12px 0; cursor: pointer; }
+  .opt { width: 100%; border: 0; background: none; text-align: left; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 0 16px; cursor: pointer; }
+  .opt + .opt { border-top: 1px solid rgba(255,255,255,.08); }
+  .opt .txt { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+  .opt .t { font-size: 16px; } .opt .s { font-size: 13px; color: rgba(255,255,255,.55); }
+  .radio { width: 22px; height: 22px; border-radius: 11px; border: 1.5px solid rgba(255,255,255,.35); display: flex; align-items: center; justify-content: center; flex: none; }
+  .opt[aria-checked=true] .radio { border-color: var(--switch); }
+  .opt[aria-checked=true] .radio::after { content: ""; width: 12px; height: 12px; border-radius: 6px; background: var(--switch); }
+  .chips { display: flex; gap: 8px; }
+  .chips button { flex: 1; min-height: 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: none; font-size: 15px; cursor: pointer; }
+  .chips button[aria-pressed=true] { background: #fff; color: #0C1730; border-color: #fff; font-weight: 600; }
+  .primary { min-height: 52px; border-radius: 26px; border: 0; background: #E6EAF5; color: #0C1730; font-size: 17px; font-weight: 600; cursor: pointer; flex: none; }
+  .alert-title { display: flex; align-items: baseline; gap: 12px; }
+  .alert-title .ar { font-size: 22px; color: rgba(255,255,255,.6); }
+  .muted { opacity: .45; pointer-events: none; }
+  .credit { text-align: center; font-size: 12px; color: rgba(255,255,255,.4); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .grab:focus { outline: none; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-  @media (min-height: 900px) { ol#list li { padding: 18px 0; } }
+  @media (max-height: 700px) { .hero-name { font-size: 44px; } ol#list li { height: 42px; } }
 </style>
 </head>
 <body>
-  <div id="sky" aria-hidden="true">
-    <canvas id="stars"></canvas>
-    <div class="orb" id="moon"><svg viewBox="-60 -60 120 120">
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="app">
+  <header>
+    <div class="where">
+      <div class="city"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span id="city">Locating…</span></div>
+      <div class="date" id="date"></div>
+    </div>
+    <button class="iconbtn" id="openSettings" aria-label="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="sky" id="sky" aria-hidden="true">
+    <svg id="skysvg" preserveAspectRatio="xMidYMax meet">
       <defs>
-        <radialGradient id="moonGlow"><stop offset="55%" stop-color="#cfe0f0" stop-opacity=".55"/><stop offset="100%" stop-color="#cfe0f0" stop-opacity="0"/></radialGradient>
+        <radialGradient id="sunGlow"><stop offset="35%" stop-color="#FFF4C8" stop-opacity=".55" id="sgs"/><stop offset="100%" stop-color="#FFF4C8" stop-opacity="0" id="sge"/></radialGradient>
+        <radialGradient id="moonGlow"><stop offset="45%" stop-color="#cfe0f0" stop-opacity=".35"/><stop offset="100%" stop-color="#cfe0f0" stop-opacity="0"/></radialGradient>
       </defs>
-      <circle r="62" fill="url(#moonGlow)" id="moonHalo"/>
-      <circle r="40" fill="#ffffff" fill-opacity=".09" id="moonDark"/>
-      <path id="moonLit" fill="#E2E6E8"/>
-    </svg></div>
-    <div class="orb" id="sun"><svg viewBox="-60 -60 120 120">
-      <defs>
-        <radialGradient id="sunGlow"><stop offset="55%" stop-color="#ffe9a8" stop-opacity=".65"/><stop offset="100%" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>
-      </defs>
-      <circle r="62" fill="url(#sunGlow)"/>
-      <circle r="40" fill="#E2E6E8" id="sunDisc"/>
-    </svg></div>
+      <polyline id="arc" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 5" stroke-linecap="round"/>
+      <line id="horizon" stroke="currentColor" stroke-opacity=".28" stroke-width="1"/>
+      <g id="ticks"></g>
+      <g id="moonG" class="body-g">
+        <circle r="57" fill="url(#moonGlow)" id="moonHalo"/>
+        <circle r="30" fill="#fff" fill-opacity=".08" id="moonDark"/>
+        <path id="moonLit" fill="#E6EAEC"/>
+      </g>
+      <g id="sunG" class="body-g">
+        <circle r="80" fill="url(#sunGlow)"/>
+        <circle r="32" fill="#F6F3EA" id="sunDisc"/>
+      </g>
+    </svg>
+    <span class="lbl" id="riseLbl" style="left:16px"></span>
+    <span class="lbl" id="setLbl" style="right:16px"></span>
   </div>
 
-  <main>
-    <header>
-      <div class="city" id="city"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span>Locating…</span></div>
-      <div id="date"></div>
-    </header>
-    <div class="spacer"></div>
-    <div class="next" id="next" aria-live="polite"></div>
-    <ol id="list"></ol>
-    <div id="banner"></div>
-    <div class="bar"><button class="pill" id="openSettings">Settings</button></div>
-  </main>
-
-  <div id="scrim"></div>
-  <section id="sheet" role="dialog" aria-modal="true" aria-label="Settings" aria-hidden="true">
-    <button class="handle" id="handle" aria-label="Close settings"></button>
-
-    <h2>Prayer Calculation</h2>
-    <label class="f" for="method">Calculation Method</label>
-    <select id="method"></select>
-    <label class="f" for="asr">Asr Method (Juristic)</label>
-    <select id="asr">
-      <option value="1">Standard — Shafi'i, Maliki, Hanbali</option>
-      <option value="2">Hanafi</option>
-    </select>
-    <label class="f" for="highLat">High-Latitude Rule</label>
-    <select id="highLat">
-      <option value="AngleBased">Angle-based (recommended)</option>
-      <option value="NightMiddle">Middle of the night</option>
-      <option value="OneSeventh">One-seventh of the night</option>
-      <option value="None">None</option>
-    </select>
-    <p class="hint">Used when twilight never fully ends, as in summer at higher latitudes.</p>
-
-    <h2>Location
-      <label class="sw">Auto-Location <input type="checkbox" id="auto"><span class="track"></span></label>
-    </h2>
-    <label class="f" for="search">Current Location</label>
-    <div id="manualBox">
-      <input type="text" id="search" placeholder="Search a city…" autocomplete="off" enterkeyhint="search">
-      <ul id="results"></ul>
-    </div>
-    <p class="hint" id="locHint"></p>
-
-    <h2>Notifications
-      <label class="sw"><input type="checkbox" id="notify"><span class="track"></span></label>
-    </h2>
-    <div id="notifyBox">
-      <div id="perPrayer"></div>
-      <label class="f" for="lead">Remind me</label>
-      <select id="lead">
-        <option value="0">At prayer time</option>
-        <option value="5">5 minutes before</option>
-        <option value="10">10 minutes before</option>
-        <option value="15">15 minutes before</option>
-        <option value="30">30 minutes before</option>
-      </select>
-      <div class="row" style="border:0;padding-top:16px">Play a chime <label class="sw"><input type="checkbox" id="chime"><span class="track"></span></label></div>
-      <button class="btn-text" id="testNote">Send a test notification</button>
-      <p class="hint" id="notifyHint">Alerts arrive while AthanTime is open or running in the background. On iPhone, add it to your Home Screen first (Share → Add to Home Screen).</p>
-    </div>
-
-    <h2>Display</h2>
-    <div class="seg" id="fmt">
-      <button data-v="12">12-hour</button><button data-v="24">24-hour</button>
-    </div>
-
-    <p class="foot">AthanTime 2.0 · Times are calculated on your device</p>
+  <section class="hero" id="hero" aria-live="polite">
+    <span class="eyebrow" id="eyebrow"></span>
+    <div class="hero-main"><span class="hero-name" id="heroName"></span><span class="hero-time" id="heroTime"></span></div>
+    <div class="progress"><div class="bar"><i id="barFill"></i></div><span class="count" id="count"></span></div>
   </section>
+  <ol id="list"></ol>
+  <div id="banner"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Settings -->
+<section class="sheet" id="settings" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <button class="grab" data-close aria-label="Close settings"></button>
+  <div class="sheet-head"><h1 id="setTitle">Settings</h1><button class="done" data-close>Done</button></div>
+
+  <div class="group">
+    <span class="gtitle">Calculation</span>
+    <div class="card">
+      <div class="row">Method <label class="pick"><span id="methodLbl"></span><svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg><select id="method" aria-label="Calculation method"></select></label></div>
+      <div class="row">Asr <div class="seg" id="asrSeg"><button data-v="1">Standard</button><button data-v="2">Hanafi</button></div></div>
+      <div class="row">High latitude <label class="pick"><span id="highLatLbl"></span><svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg><select id="highLat" aria-label="High-latitude rule">
+        <option value="AngleBased">Angle-based</option><option value="NightMiddle">Middle of night</option><option value="OneSeventh">One-seventh</option><option value="None">None</option></select></label></div>
+    </div>
+    <p class="foot" id="latFoot">Keeps Fajr and Isha sensible where twilight lingers, as in summer above about 45°.</p>
+  </div>
+
+  <div class="group">
+    <span class="gtitle">Location</span>
+    <div class="card">
+      <div class="row">Use current location <button class="switch" role="switch" id="auto" aria-label="Use current location"><span></span></button></div>
+      <div class="row" id="cityRow"><input class="search" id="search" type="text" placeholder="Search a city…" autocomplete="off" enterkeyhint="search" aria-label="Search a city"></div>
+      <div id="results"></div>
+    </div>
+    <p class="foot" id="locHint"></p>
+  </div>
+
+  <div class="group">
+    <span class="gtitle">Notifications</span>
+    <div class="card">
+      <div class="row">Prayer alerts <button class="switch" role="switch" id="notify" aria-label="Prayer alerts"><span></span></button></div>
+      <div class="row"><button class="linkbtn" id="testNote">Send a test alert</button></div>
+    </div>
+    <p class="foot" id="notifyHint">Tap the bell next to any prayer to choose its sound and reminder. Alerts arrive while AthanTime is open or in the background. On iPhone, add it to your Home Screen first.</p>
+  </div>
+
+  <div class="group">
+    <span class="gtitle">Display</span>
+    <div class="card">
+      <div class="row">Time format <div class="seg" id="fmtSeg"><button data-v="12">12h</button><button data-v="24">24h</button></div></div>
+    </div>
+  </div>
+  <p class="credit">AthanTime 2.0 · Times are calculated on this device</p>
+</section>
+
+<!-- Per-prayer alert -->
+<section class="sheet" id="alertSheet" role="dialog" aria-modal="true" aria-labelledby="alertName">
+  <button class="grab" data-close aria-label="Close"></button>
+  <div style="display:flex;flex-direction:column;gap:2px;padding:0 4px">
+    <span class="eyebrow" id="alertWhen" style="color:rgba(255,255,255,.55)"></span>
+    <div class="alert-title"><h1 id="alertName"></h1><span class="ar" id="alertAr"></span></div>
+  </div>
+  <div class="card" role="radiogroup" aria-label="Alert sound" id="modes">
+    <button class="opt" role="radio" data-m="bell"><span class="txt"><span class="t">Bells</span><span class="s">A warm, ringing three-note call</span></span><span class="radio"></span></button>
+    <button class="opt" role="radio" data-m="chime"><span class="txt"><span class="t">Chime</span><span class="s">A single soft tone</span></span><span class="radio"></span></button>
+    <button class="opt" role="radio" data-m="silent"><span class="txt"><span class="t">Silent</span><span class="s">Banner only, no sound</span></span><span class="radio"></span></button>
+    <button class="opt" role="radio" data-m="off"><span class="txt"><span class="t">Off</span><span class="s" id="offSub"></span></span><span class="radio"></span></button>
+  </div>
+  <div class="group" id="leadGroup">
+    <span class="gtitle">Remind me before</span>
+    <div class="chips" id="leads"><button data-l="0">None</button><button data-l="5">5 min</button><button data-l="15">15 min</button><button data-l="30">30 min</button></div>
+  </div>
+  <button class="primary" data-close>Save</button>
+</section>
 
 <script>
 "use strict";
@@ -372,355 +392,421 @@ function moonIllum(date) {
   return { fraction: (1 + Math.cos(inc)) / 2, phase: 0.5 + 0.5 * inc * (angle < 0 ? -1 : 1) / Math.PI };
 }
 
+
+
 /* =========================================================
    State
    ========================================================= */
 const tzName = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { return ""; } })();
 const defaultMethod = /^America\//.test(tzName) ? "ISNA"
-  : /^(Asia\/(Riyadh|Aden|Bahrain))/.test(tzName) ? "Makkah"
+  : /^Asia\/(Riyadh|Aden|Bahrain)/.test(tzName) ? "Makkah"
   : /^Asia\/(Karachi|Kolkata|Dhaka|Calcutta)/.test(tzName) ? "Karachi"
-  : /^Africa\/(Cairo)/.test(tzName) ? "Egypt"
-  : /^Asia\/(Dubai)/.test(tzName) ? "Dubai"
-  : /^Asia\/(Qatar)/.test(tzName) ? "Qatar"
-  : /^Asia\/(Kuwait)/.test(tzName) ? "Kuwait"
+  : /^Africa\/Cairo/.test(tzName) ? "Egypt"
+  : /^Asia\/Dubai/.test(tzName) ? "Dubai"
+  : /^Asia\/Qatar/.test(tzName) ? "Qatar"
+  : /^Asia\/Kuwait/.test(tzName) ? "Kuwait"
   : /^Asia\/(Singapore|Kuala_Lumpur|Jakarta)/.test(tzName) ? "Singapore"
   : /^Europe\/Istanbul/.test(tzName) ? "Turkey"
   : /^Asia\/Tehran/.test(tzName) ? "Tehran" : "MWL";
+
+const KEYS6 = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"];
+const NAMES = { fajr: "Fajr", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" };
+const ARABIC = { fajr: "الفجر", sunrise: "الشروق", dhuhr: "الظهر", asr: "العصر", maghrib: "المغرب", isha: "العشاء" };
+const defaultAlerts = () => Object.fromEntries(KEYS6.map(k => [k, { mode: k === "sunrise" ? "off" : "bell", lead: 0 }]));
 
 const S = {
   method: store.get("method", defaultMethod),
   asr: store.get("asr", "1"),
   highLat: store.get("highLat", "AngleBased"),
   auto: store.get("auto", true),
-  loc: store.get("loc", null),           // {lat, lng, name}
+  loc: store.get("loc", null),
   notify: store.get("notify", false),
-  perPrayer: store.get("perPrayer", { fajr: true, sunrise: false, dhuhr: true, asr: true, maghrib: true, isha: true }),
-  lead: store.get("lead", "0"),
-  chime: store.get("chime", false),
+  alerts: Object.assign(defaultAlerts(), store.get("alerts", {})),
   fmt: store.get("fmt", (() => { try { return new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hour12 === false ? "24" : "12"; } catch { return "12"; } })())
 };
 const save = k => store.set(k, S[k]);
-// Preview helpers: ?lat=47.6&lng=-122.3&name=Seattle&at=2026-11-15T17:30 (for sharing a place or testing the sky)
+// Preview links: ?lat=47.61&lng=-122.33&name=Seattle&at=2026-11-15T17:30
 const Q = new URLSearchParams(location.search);
 const OFF = Q.get("at") && !isNaN(Date.parse(Q.get("at"))) ? Date.parse(Q.get("at")) - Date.now() : 0;
-function nowD() { return new Date(Date.now() + OFF); }
+const nowD = () => new Date(Date.now() + OFF);
 if (Q.get("lat") && Q.get("lng")) { S.loc = { lat: +Q.get("lat"), lng: +Q.get("lng"), name: Q.get("name") || "" }; S.auto = false; }
-const NAMES = { fajr: "Fajr", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" };
 const $ = id => document.getElementById(id);
-let today = [], tomorrow = [], yesterday = [];
+let today = [], tomorrow = [], yesterday = [], calcDay = "";
 
 /* =========================================================
-   Rendering
+   Formatting
    ========================================================= */
-function fmtTime(d, withSuffix = true) {
-  if (!d) return "—";
-  if (S.fmt === "24") return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
-  const s = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-  const [t, ap] = s.split(" ");
-  return withSuffix ? `${t}<small>${ap}</small>` : s;
+function parts(d) {
+  if (!d) return ["—", ""];
+  if (S.fmt === "24") return [d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false }), ""];
+  const [t, ap] = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).split(" ");
+  return [t, ap];
 }
-function fmtDur(ms) {
-  const m = Math.max(0, Math.round(ms / 60000)), h = Math.floor(m / 60), mm = m % 60;
-  return h ? `${h}h ${mm}m` : `${mm} min`;
+const plain = d => parts(d).join(" ").trim();
+const html = d => { const [t, ap] = parts(d); return ap ? `${t}<small>${ap}</small>` : t; };
+function dur(ms) {
+  const m = Math.max(0, Math.ceil(ms / 60000)), h = Math.floor(m / 60), mm = m % 60;
+  return h ? `${h}h ${String(mm).padStart(2, "0")}m` : `${mm} min`;
 }
 
+/* =========================================================
+   Prayer state
+   ========================================================= */
 function recalc() {
-  if (!S.loc) { today = []; render(); return; }
-  const now = nowD();
-  const cfg = { method: S.method, asr: S.asr, highLat: S.highLat };
+  if (!S.loc) { today = []; render(); updateSky(); return; }
+  const now = nowD(), cfg = { method: S.method, asr: S.asr, highLat: S.highLat };
   const d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   today = computeTimes(d0, S.loc.lat, S.loc.lng, cfg);
   tomorrow = computeTimes(new Date(d0.getTime() + 36 * 3600e3), S.loc.lat, S.loc.lng, cfg);
   yesterday = computeTimes(new Date(d0.getTime() - 12 * 3600e3), S.loc.lat, S.loc.lng, cfg);
   calcDay = d0.toDateString();
-  render();
-  scheduleNotifications();
+  render(); buildArc(); updateSky(); scheduleNotifications();
 }
-let calcDay = "";
-
-function currentAndNext(now) {
+function curNext(now) {
   let cur = null, next = null;
-  for (const p of today) { if (p.time && p.time <= now) cur = p; }
-  for (const p of today) { if (p.time && p.time > now) { next = p; break; } }
-  if (!cur) cur = { ...yesterday[5], key: "isha" };
+  for (const p of today) if (p.time && p.time <= now) cur = p;
+  for (const p of today) if (p.time && p.time > now) { next = p; break; }
+  if (!cur) cur = yesterday[5];
   if (!next) next = tomorrow[0];
   return { cur, next };
 }
 
+const BELL_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+const BELL_SILENT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M9 11h6"/></svg>';
+const BELL_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.4.4 4.3 1 5.7"/><path d="M17 17H3s3-2 3-9c0-.7.1-1.4.4-2"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="m2 2 20 20"/></svg>';
+
 function render() {
   const now = nowD();
-  // header
   let hijri = "";
-  try { hijri = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(now); } catch {}
-  $("date").textContent = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) + (hijri ? " · " + hijri : "");
-  $("city").querySelector("span").textContent = S.loc ? (S.loc.name || `${S.loc.lat.toFixed(2)}, ${S.loc.lng.toFixed(2)}`) : "Set your location";
+  try { hijri = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric" }).format(now).replace(/\s*AH$/, ""); } catch {}
+  $("date").textContent = now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }) + (hijri ? " · " + hijri : "");
+  $("city").textContent = S.loc ? (S.loc.name || `${S.loc.lat.toFixed(2)}, ${S.loc.lng.toFixed(2)}`) : "Set your location";
 
-  const list = $("list");
   if (!today.length) {
-    list.innerHTML = ""; $("next").textContent = "";
-    $("banner").innerHTML = `<div class="banner">To show prayer times, AthanTime needs your location. <button id="bOpen">Open Settings</button></div>`;
-    $("bOpen").onclick = openSheet;
+    $("list").innerHTML = ""; $("hero").style.visibility = "hidden";
+    $("banner").innerHTML = `<div class="banner">AthanTime needs your location to work out prayer times. <button id="bOpen">Open Settings</button></div>`;
+    $("bOpen").onclick = () => openSheet("settings");
     return;
   }
-  $("banner").innerHTML = "";
-  const { cur, next } = currentAndNext(now);
-  list.innerHTML = today.map(p => {
-    const cls = [p.key === cur.key ? "now" : (p.time && p.time < now ? "past" : ""), S.perPrayer[p.key] ? "on" : ""].join(" ");
-    return `<li class="${cls}"><span>${NAMES[p.key]}<svg class="bell" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg></span><span class="t">${fmtTime(p.time)}</span></li>`;
-  }).join("");
-  const label = next.key === "sunrise" ? "Sunrise" : NAMES[next.key];
-  $("next").innerHTML = `${label} in <b>${fmtDur(next.time - now)}</b>`;
-  document.body.classList.toggle("notify", !!S.notify);
-}
+  $("banner").innerHTML = ""; $("hero").style.visibility = "";
+  const { cur, next } = curNext(now);
+  const left = next.time - now, span = next.time - cur.time;
+  const soon = left <= 30 * 60000;
+  if (soon) {
+    $("eyebrow").textContent = `${NAMES[next.key]} in`;
+    $("heroName").textContent = dur(left);
+  } else {
+    $("eyebrow").textContent = (cur.key === "sunrise" ? "Next" : `Now ${NAMES[cur.key]} · Next`);
+    $("heroName").textContent = NAMES[next.key];
+  }
+  $("heroTime").textContent = plain(next.time);
+  $("barFill").style.width = Math.max(2, Math.min(100, 100 * (1 - left / span))) + "%";
+  $("count").textContent = soon ? `${NAMES[cur.key]} ending` : dur(left);
 
-/* ---------- Sky ---------- */
-const KEYS = [ // sun altitude (deg) -> [top, bottom]
-  [-90, "#0B1426", "#221F45"],
-  [-18, "#13223D", "#2E2B58"],
-  [-12, "#1F3B5C", "#3D3A6C"],
-  [-6,  "#2C5A78", "#4A4577"],   // from the mockup (dusk)
-  [-2,  "#36608A", "#9B6C8A"],
-  [1,   "#3F74A6", "#F0A577"],   // sunrise / sunset glow
-  [6,   "#2F82BC", "#A9DDF2"],
-  [15,  "#2A7FBA", "#E8F5FB"],
-  [90,  "#2A7FBA", "#F7FBFD"]    // from the mockup (day)
+  $("list").innerHTML = today.map(p => {
+    const a = S.alerts[p.key], on = S.notify && a.mode !== "off";
+    const icon = !S.notify || a.mode === "off" ? BELL_OFF : a.mode === "silent" ? BELL_SILENT : BELL_ON;
+    const nowCls = p.key === cur.key ? "now" : (p.time && p.time <= now ? "past" : "");
+    return `<li class="${nowCls}"><span class="dot"></span>
+      <span class="pname">${NAMES[p.key]}<span class="ar" lang="ar">${ARABIC[p.key]}</span></span>
+      <span class="ptime">${html(p.time)}</span>
+      <button class="bell ${on ? "" : "off"}" data-k="${p.key}" aria-label="${NAMES[p.key]} alert: ${S.notify ? a.mode : "off"}">${icon}</button></li>`;
+  }).join("");
+}
+$("list").addEventListener("click", e => { const b = e.target.closest(".bell"); if (b) openAlert(b.dataset.k); });
+
+/* =========================================================
+   Sky
+   ========================================================= */
+const THEMES = [ // sun altitude ° → top, mid, bottom
+  [-90, "#08101F", "#141E3A", "#211E44"],
+  [-18, "#0C1730", "#1B2A4E", "#2E2A5A"],
+  [-8,  "#1A2D52", "#3A3F70", "#5A4A7C"],
+  [-2,  "#2A4272", "#6A5A86", "#C58A86"],
+  [2,   "#32507E", "#8A6C8E", "#EFA77B"],
+  [8,   "#2A6FAA", "#6FA6CC", "#F3D2B0"],
+  [16,  "#2378B5", "#5DB8E6", "#EAF6FC"],
+  [90,  "#1F70AD", "#58B2E2", "#F2F9FD"]
 ];
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const mix = (a, b, t) => { const A = hex(a), B = hex(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join(""); };
-function skyFor(altDeg) {
-  for (let i = 0; i < KEYS.length - 1; i++) {
-    const [a0, t0, b0] = KEYS[i], [a1, t1, b1] = KEYS[i + 1];
-    if (altDeg >= a0 && altDeg <= a1) { const t = (altDeg - a0) / (a1 - a0); return [mix(t0, t1, t), mix(b0, b1, t)]; }
+function themeFor(alt) {
+  for (let i = 0; i < THEMES.length - 1; i++) {
+    const A = THEMES[i], B = THEMES[i + 1];
+    if (alt >= A[0] && alt <= B[0]) { const t = (alt - A[0]) / (B[0] - A[0]); return [1, 2, 3].map(j => mix(A[j], B[j], t)); }
   }
-  return [KEYS[0][1], KEYS[0][2]];
+  return THEMES[0].slice(1);
 }
 
+let geo = null; // mapping for the day
+function skyBox() { const r = $("sky").getBoundingClientRect(); return { W: r.width, H: r.height }; }
+function project(pos) {
+  const { W, H } = skyBox(), south = S.loc.lat < 0;
+  let a = pos.az; if (south) a = a > 0 ? Math.PI - a : -Math.PI - a;
+  const scale = geo ? geo.azScale : Math.PI / 2;
+  const xn = Math.max(-1.15, Math.min(1.15, a / scale));
+  const horizon = H - 26, top = 44;
+  const alt = pos.alt / D2R;
+  const y = alt >= 0 ? horizon - (horizon - top) * Math.pow(Math.min(alt, 90) / 90, 0.62) : horizon - alt * 5;
+  return { x: W / 2 + xn * (W / 2 - 46), y, alt };
+}
+function buildArc() {
+  const svg = $("skysvg"); const { W, H } = skyBox();
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  $("horizon").setAttribute("x1", 16); $("horizon").setAttribute("x2", W - 16);
+  $("horizon").setAttribute("y1", H - 26); $("horizon").setAttribute("y2", H - 26);
+  if (!S.loc || !today.length) { $("arc").setAttribute("points", ""); $("ticks").innerHTML = ""; $("riseLbl").textContent = $("setLbl").textContent = ""; return; }
+  const rise = today[1].time, set = today[4].time; // maghrib ≈ sunset for most methods
+  const { lat, lng } = S.loc;
+  const sunset = new Date(+set);
+  const rz = bodyPos(rise, lat, lng, sunCoords).az, sz = bodyPos(sunset, lat, lng, sunCoords).az;
+  geo = { azScale: Math.max(Math.PI / 3, Math.abs(rz), Math.abs(sz)) };
+  const pts = [];
+  for (let t = +rise; t <= +sunset; t += 6 * 60000) { const p = project(bodyPos(new Date(t), lat, lng, sunCoords)); pts.push(`${p.x.toFixed(1)},${Math.min(p.y, H - 26).toFixed(1)}`); }
+  const e = project(bodyPos(sunset, lat, lng, sunCoords)); pts.push(`${e.x.toFixed(1)},${(H - 26).toFixed(1)}`);
+  $("arc").setAttribute("points", pts.join(" "));
+  $("ticks").innerHTML = ["sunrise", "dhuhr", "asr", "maghrib"].map(k => {
+    const p = today.find(x => x.key === k); if (!p.time) return "";
+    const q = project(bodyPos(p.time, lat, lng, sunCoords));
+    return `<circle cx="${q.x.toFixed(1)}" cy="${Math.min(q.y, H - 26).toFixed(1)}" r="2.6" fill="currentColor" fill-opacity=".55"/>`;
+  }).join("");
+  $("riseLbl").textContent = "SUNRISE " + plain(rise);
+  $("setLbl").textContent = "SUNSET " + plain(sunset);
+}
 function moonPath(phase, r, flip) {
-  // phase: 0 new, .25 first quarter, .5 full, .75 last quarter
-  const waxing = phase < 0.5;
-  const k = Math.cos(phase * 2 * Math.PI);           // 1 at new, -1 at full
-  const rx = Math.abs(k) * r;
-  const gibbous = k < 0;
-  let right = waxing; if (flip) right = !right;      // which limb is lit
-  const outer = right ? 1 : 0;
-  const term = right ? (gibbous ? 1 : 0) : (gibbous ? 0 : 1);
-  return `M0 ${-r} A${r} ${r} 0 0 ${outer} 0 ${r} A${rx} ${r} 0 0 ${term} 0 ${-r}Z`;
+  const k = Math.cos(phase * 2 * Math.PI), rx = Math.abs(k) * r, gibbous = k < 0;
+  let right = phase < 0.5; if (flip) right = !right;
+  const outer = right ? 1 : 0, term = right ? (gibbous ? 1 : 0) : (gibbous ? 0 : 1);
+  return `M0 ${-r} A${r} ${r} 0 0 ${outer} 0 ${r} A${rx.toFixed(2)} ${r} 0 0 ${term} 0 ${-r}Z`;
 }
-
-function placeBody(el, pos, south) {
-  // map azimuth (from south, +west) to x; altitude to y
-  const W = innerWidth, H = innerHeight;
-  let a = pos.az; if (south) a = a > 0 ? Math.PI - a : -Math.PI - a; // face north in southern hemisphere
-  const xNorm = Math.max(-1.12, Math.min(1.12, a / (Math.PI / 2)));
-  const nr = $("next").getBoundingClientRect(), hr = document.querySelector("header").getBoundingClientRect();
-  const horizon = Math.max(hr.bottom + 120, nr.top - 34), top = Math.min(horizon - 60, hr.bottom + 70);
-  const altDeg = pos.alt / D2R;
-  const y = altDeg >= 0 ? horizon - (horizon - top) * Math.min(1, altDeg / 70) : horizon - altDeg * 6;
-  el.style.left = (W / 2 + xNorm * W * 0.36) + "px";
-  el.style.top = y + "px";
-  el.style.opacity = Math.max(0, Math.min(1, (altDeg + 3) / 5));
-}
-
-let starField = [];
+let stars = [];
 function drawStars(alpha) {
   const c = $("stars"), dpr = devicePixelRatio || 1;
   if (c.width !== innerWidth * dpr || c.height !== innerHeight * dpr) {
     c.width = innerWidth * dpr; c.height = innerHeight * dpr;
-    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    starField = Array.from({ length: 140 }, () => ({ x: rnd(), y: rnd() * 0.6, r: rnd() * 1.2 + 0.3, a: rnd() * 0.7 + 0.3 }));
+    let s = 11; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round(innerWidth * 0.35) }, () => ({ x: r(), y: r() * 0.5, r: r() * 1.1 + 0.35, a: r() * 0.7 + 0.25 }));
   }
-  const g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height);
-  g.fillStyle = "#fff";
-  for (const s of starField) { g.globalAlpha = s.a * (1 - s.y / 0.7); g.beginPath(); g.arc(s.x * c.width, s.y * c.height, s.r * dpr, 0, 7); g.fill(); }
+  const g = c.getContext("2d"); g.clearRect(0, 0, c.width, c.height); g.fillStyle = "#fff";
+  for (const st of stars) { g.globalAlpha = st.a * (1 - st.y / 0.55); g.beginPath(); g.arc(st.x * c.width, st.y * c.height, st.r * dpr, 0, 7); g.fill(); }
   c.style.opacity = alpha;
 }
-
+function setVar(k, v) { document.documentElement.style.setProperty(k, v); }
 function updateSky() {
-  if (!S.loc) {
-    document.documentElement.style.setProperty("--sky-top", "#2C5A78");
-    document.documentElement.style.setProperty("--sky-bot", "#4A4577");
-    $("sun").style.opacity = 0; $("moon").style.opacity = 0; return;
-  }
-  const now = nowD(), { lat, lng } = S.loc, south = lat < 0;
-  const sun = bodyPos(now, lat, lng, sunCoords), moon = bodyPos(now, lat, lng, moonCoords);
-  const sunAlt = sun.alt / D2R;
-  const [top, bot] = skyFor(sunAlt);
-  const r = document.documentElement.style;
-  r.setProperty("--sky-top", top); r.setProperty("--sky-bot", bot);
+  const sunG = $("sunG"), moonG = $("moonG");
+  if (!S.loc) { sunG.style.opacity = 0; moonG.style.opacity = 0; drawStars(.6); return; }
+  const now = nowD(), { lat, lng } = S.loc;
+  const sp = project(bodyPos(now, lat, lng, sunCoords)), mp = project(bodyPos(now, lat, lng, moonCoords));
+  const [top, mid, bot] = themeFor(sp.alt);
+  setVar("--top", top); setVar("--mid", mid); setVar("--bot", bot);
   document.querySelector('meta[name="theme-color"]').content = top;
-  const light = sunAlt > 7;
-  r.setProperty("--ink", light ? "#0d0f12" : "#ffffff");
-  r.setProperty("--ink-soft", light ? "rgba(13,15,18,.66)" : "rgba(255,255,255,.74)");
+  const light = sp.alt > 9;
+  setVar("--ink", light ? "#0D1B2A" : "#ffffff");
+  setVar("--soft", light ? "rgba(13,27,42,.62)" : "rgba(255,255,255,.7)");
+  setVar("--hi", light ? "rgba(255,255,255,.55)" : "rgba(255,255,255,.12)");
+  setVar("--line", light ? "rgba(13,27,42,.14)" : "rgba(255,255,255,.2)");
+  setVar("--glass", light ? "rgba(255,255,255,.35)" : "rgba(255,255,255,.09)");
+  setVar("--accent", light ? "#0D1B2A" : sp.alt > -6 ? "#FFD9A8" : "#B9C8FF");
+  $("skysvg").style.color = light ? "#0D1B2A" : "#ffffff";
+  $("arc").setAttribute("stroke-opacity", light ? ".35" : sp.alt > -6 ? ".3" : ".22");
 
-  placeBody($("sun"), sun, south);
-  // warmer sun near the horizon
-  $("sunDisc").setAttribute("fill", sunAlt < 8 ? mix("#FFC98A", "#F3F0E6", Math.max(0, sunAlt) / 8) : "#F3F0E6");
-  placeBody($("moon"), moon, south);
+  const fade = alt => Math.max(0, Math.min(1, (alt + 2.5) / 4));
+  sunG.style.transform = `translate(${sp.x}px, ${sp.y}px)`; sunG.style.opacity = fade(sp.alt);
+  const warm = Math.max(0, Math.min(1, sp.alt / 10));
+  $("sunDisc").setAttribute("fill", mix("#FFC48A", "#F6F3EA", warm));
+  const glow = mix("#FFB070", "#FFF4C8", warm); $("sgs").setAttribute("stop-color", glow); $("sge").setAttribute("stop-color", glow);
+
   const ill = moonIllum(now);
-  $("moonLit").setAttribute("d", moonPath(ill.phase, 40, south));
-  $("moonHalo").setAttribute("opacity", (0.25 + ill.fraction * 0.75) * (sunAlt > 0 ? 0.35 : 1));
-  $("moonDark").setAttribute("fill-opacity", sunAlt > 0 ? 0.0 : 0.09);
-  drawStars(Math.max(0, Math.min(1, (-sunAlt - 6) / 8)));
+  moonG.style.transform = `translate(${mp.x}px, ${mp.y}px)`;
+  const dayDim = sp.alt > 0 ? 0.55 : 1;
+  moonG.style.opacity = fade(mp.alt) * (ill.fraction < 0.02 ? 0 : 1);
+  $("moonLit").setAttribute("d", moonPath(ill.phase, 30, lat < 0));
+  $("moonLit").setAttribute("fill-opacity", dayDim);
+  $("moonHalo").setAttribute("opacity", sp.alt > 0 ? 0 : 0.3 + ill.fraction * 0.7);
+  $("moonDark").setAttribute("fill-opacity", sp.alt > 0 ? 0 : 0.08);
+  drawStars(Math.max(0, Math.min(1, (-sp.alt - 5) / 8)));
 }
 
 /* =========================================================
    Location
    ========================================================= */
+const lang = { headers: { "Accept-Language": navigator.language || "en" } };
+const placeName = (a, fallback) => [a.city || a.town || a.village || a.hamlet || a.county || fallback, a.state || a.country].filter(Boolean).join(", ");
 async function reverseName(lat, lng) {
-  try {
-    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lng}`, { headers: { "Accept-Language": navigator.language || "en" } });
-    const j = await r.json(), a = j.address || {};
-    return [a.city || a.town || a.village || a.county, a.state || a.country].filter(Boolean).join(", ");
-  } catch { return ""; }
+  try { const j = await (await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lng}`, lang)).json(); return placeName(j.address || {}); } catch { return ""; }
 }
 function locate() {
-  if (!("geolocation" in navigator)) { $("locHint").textContent = "This browser can't share location. Search for a city instead."; S.auto = false; save("auto"); syncSettings(); return; }
+  if (!("geolocation" in navigator)) { $("locHint").textContent = "This browser can't share location. Search for a city instead."; setAuto(false); return; }
   $("locHint").textContent = "Finding your location…";
   navigator.geolocation.getCurrentPosition(async p => {
     const lat = +p.coords.latitude.toFixed(4), lng = +p.coords.longitude.toFixed(4);
     const moved = !S.loc || Math.abs(S.loc.lat - lat) > 0.05 || Math.abs(S.loc.lng - lng) > 0.05;
-    S.loc = { lat, lng, name: moved ? "" : S.loc.name }; save("loc"); recalc(); updateSky();
-    $("locHint").textContent = "Using your device location.";
-    if (moved || !S.loc.name) { const n = await reverseName(lat, lng); if (n) { S.loc.name = n; save("loc"); render(); } }
+    S.loc = { lat, lng, name: moved ? "" : (S.loc.name || "") }; save("loc"); recalc();
+    $("locHint").textContent = "Using this device's location.";
+    if (!S.loc.name) { const n = await reverseName(lat, lng); if (n) { S.loc.name = n; save("loc"); render(); syncSettings(); } }
   }, err => {
-    $("locHint").textContent = err.code === 1 ? "Location permission was denied. Search for a city instead." : "Couldn't get your location. Search for a city instead.";
-    S.auto = false; save("auto"); syncSettings();
-    if (!S.loc) openSheet();
-  }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 3600e3 });
+    $("locHint").textContent = err.code === 1 ? "Location access was declined. Search for your city instead." : "Couldn't find your location. Search for your city instead.";
+    setAuto(false); if (!S.loc) openSheet("settings");
+  }, { timeout: 12000, maximumAge: 3600e3 });
 }
+function setAuto(v) { S.auto = v; save("auto"); syncSettings(); }
 let searchTimer;
 $("search").addEventListener("input", e => {
-  clearTimeout(searchTimer);
-  const q = e.target.value.trim();
+  clearTimeout(searchTimer); const q = e.target.value.trim();
   if (q.length < 2) { $("results").innerHTML = ""; return; }
   searchTimer = setTimeout(async () => {
     try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=${encodeURIComponent(q)}`, { headers: { "Accept-Language": navigator.language || "en" } });
-      const j = await r.json();
-      $("results").innerHTML = j.length ? j.map((x, i) => `<li data-i="${i}">${x.display_name.replace(/</g, "&lt;")}</li>`).join("") : `<li style="cursor:default">No matches</li>`;
-      $("results").querySelectorAll("li[data-i]").forEach(li => li.onclick = () => {
-        const x = j[+li.dataset.i], a = x.address || {};
-        const name = [a.city || a.town || a.village || a.county || x.name, a.state || a.country].filter(Boolean).join(", ");
-        S.loc = { lat: +(+x.lat).toFixed(4), lng: +(+x.lon).toFixed(4), name }; save("loc");
-        $("search").value = name; $("results").innerHTML = "";
-        $("locHint").textContent = "Times shown in this device's time zone.";
-        recalc(); updateSky();
-      });
-    } catch { $("results").innerHTML = `<li style="cursor:default">Search is unavailable offline</li>`; }
+      const j = await (await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&q=${encodeURIComponent(q)}`, lang)).json();
+      const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      $("results").innerHTML = j.length ? j.map((x, i) => `<button data-i="${i}">${esc(x.display_name)}</button>`).join("") : `<button disabled>No matches</button>`;
+      $("results").onclick = ev => {
+        const b = ev.target.closest("button[data-i]"); if (!b) return;
+        const x = j[+b.dataset.i];
+        S.loc = { lat: +(+x.lat).toFixed(4), lng: +(+x.lon).toFixed(4), name: placeName(x.address || {}, x.name) }; save("loc");
+        $("search").value = S.loc.name; $("results").innerHTML = "";
+        $("locHint").textContent = "Times are shown in this device's time zone.";
+        recalc();
+      };
+    } catch { $("results").innerHTML = `<button disabled>Search needs an internet connection</button>`; }
   }, 350);
 });
 
 /* =========================================================
-   Notifications
+   Sound & notifications
    ========================================================= */
-let timers = [];
+let ac = null;
+function audio() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); } catch {} return ac; }
+function tone(ctx, f, t, len, vol) {
+  const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+  o.type = "sine"; o.frequency.value = f; o2.type = "sine"; o2.frequency.value = f * 2.76; // bell-like partial
+  const g2 = ctx.createGain(); g2.gain.value = 0.18;
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0008, t + len);
+  o.start(t); o2.start(t); o.stop(t + len + 0.05); o2.stop(t + len + 0.05);
+}
+function playSound(mode) {
+  const ctx = audio(); if (!ctx) return; const t = ctx.currentTime + 0.05;
+  if (mode === "chime") tone(ctx, 659.25, t, 2.2, 0.22);
+  if (mode === "bell") [523.25, 659.25, 783.99, 659.25, 523.25].forEach((f, i) => tone(ctx, f, t + i * 0.55, 2.4, 0.2));
+}
 let swReg = null;
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r => swReg = r).catch(() => {});
-
-function chime() {
-  try {
-    const ac = new (window.AudioContext || window.webkitAudioContext)();
-    [523.25, 659.25, 783.99].forEach((f, i) => {
-      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + i * 0.35;
-      o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(ac.destination);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25, t + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
-      o.start(t); o.stop(t + 1.7);
-    });
-  } catch {}
+async function notify(title, body, mode) {
+  const opts = { body, icon: "icon-192.png", badge: "icon-192.png", tag: "athantime-" + title, renotify: true, silent: mode === "silent" };
+  try { const reg = swReg || await navigator.serviceWorker?.getRegistration(); if (reg) await reg.showNotification(title, opts); else new Notification(title, opts); }
+  catch { try { new Notification(title, opts); } catch {} }
+  if (mode === "bell" || mode === "chime") playSound(mode);
 }
-async function notify(title, body) {
-  const opts = { body, icon: "icon-192.png", badge: "icon-192.png", tag: "athantime-" + title, renotify: true };
-  try {
-    const reg = swReg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
-    if (reg) await reg.showNotification(title, opts); else new Notification(title, opts);
-  } catch { try { new Notification(title, opts); } catch {} }
-  if (S.chime) chime();
-}
+let timers = [];
 function scheduleNotifications() {
   timers.forEach(clearTimeout); timers = [];
   if (!S.notify || !("Notification" in window) || Notification.permission !== "granted") return;
-  const now = nowD().getTime(), lead = (+S.lead) * 60000;
+  const now = nowD().getTime();
   for (const p of [...today, ...tomorrow]) {
-    if (!p.time || !S.perPrayer[p.key]) continue;
-    const at = p.time.getTime() - lead, delay = at - now;
-    if (delay > 0 && delay < 26 * 3600e3) {
-      timers.push(setTimeout(() => {
-        const name = NAMES[p.key];
-        const body = lead ? `${name} begins in ${S.lead} minutes (${fmtTime(p.time, false)}).`
-          : p.key === "sunrise" ? `Sunrise at ${fmtTime(p.time, false)}.` : `It's time for ${name} · ${fmtTime(p.time, false)}`;
-        notify(lead ? `${name} soon` : name, body);
-      }, delay));
-    }
+    const a = S.alerts[p.key]; if (!p.time || a.mode === "off") continue;
+    const fire = (at, title, body) => { const d = at - now; if (d > 0 && d < 26 * 3600e3) timers.push(setTimeout(() => notify(title, body, a.mode), d)); };
+    const name = NAMES[p.key];
+    fire(p.time.getTime(), name, p.key === "sunrise" ? `Sunrise at ${plain(p.time)}. Fajr time has ended.` : `It's time for ${name} · ${plain(p.time)}`);
+    if (+a.lead) fire(p.time.getTime() - a.lead * 60000, `${name} in ${a.lead} min`, `${name} begins at ${plain(p.time)}.`);
   }
 }
 
 /* =========================================================
-   Settings sheet
+   Sheets
    ========================================================= */
-function openSheet() { $("sheet").classList.add("open"); $("scrim").classList.add("open"); $("sheet").setAttribute("aria-hidden", "false"); }
-function closeSheet() { $("sheet").classList.remove("open"); $("scrim").classList.remove("open"); $("sheet").setAttribute("aria-hidden", "true"); $("sheet").style.transform = ""; }
-$("openSettings").onclick = openSheet;
+let openId = null;
+function openSheet(id) { closeSheet(); openId = id; $(id).classList.add("open"); $("scrim").classList.add("open"); setTimeout(() => $(id).querySelector(".grab").focus({ preventScroll: true }), 50); }
+function closeSheet() { if (!openId) return; const s = $(openId); s.classList.remove("open"); s.style.transform = ""; $("scrim").classList.remove("open"); openId = null; render(); }
+$("openSettings").onclick = () => openSheet("settings");
 $("scrim").onclick = closeSheet;
-$("handle").onclick = closeSheet;
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheet);
 addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
-// drag down to dismiss
-(() => {
-  let y0 = null, dy = 0; const sh = $("sheet");
+document.querySelectorAll(".sheet").forEach(sh => {
+  let y0 = null, dy = 0;
   sh.addEventListener("touchstart", e => { if (sh.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; sh.style.transition = "none"; } }, { passive: true });
-  sh.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy > 0) sh.style.transform = `translateY(${dy}px)`; }, { passive: true });
+  sh.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); if (dy) sh.style.transform = `translateY(${dy}px)`; }, { passive: true });
   sh.addEventListener("touchend", () => { if (y0 == null) return; sh.style.transition = ""; if (dy > 110) closeSheet(); else sh.style.transform = ""; y0 = null; });
-})();
+});
 
+const CHEV = '<svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>';
 $("method").innerHTML = Object.entries(METHODS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
-$("perPrayer").innerHTML = Object.entries(NAMES).map(([k, n]) =>
-  `<div class="row">${n}<label class="sw"><input type="checkbox" data-p="${k}"><span class="track"></span></label></div>`).join("");
+const SHORT = { ISNA: "ISNA", MWL: "Muslim World League", Makkah: "Umm al-Qura", Egypt: "Egypt", Karachi: "Karachi", Moonsighting: "Moonsighting", Dubai: "Dubai", Qatar: "Qatar", Kuwait: "Kuwait", Singapore: "Singapore", Turkey: "Diyanet", Tehran: "Tehran", Jafari: "Jafari" };
 
 function syncSettings() {
-  $("method").value = S.method; $("asr").value = S.asr; $("highLat").value = S.highLat;
-  $("auto").checked = S.auto;
-  $("manualBox").classList.toggle("muted", S.auto);
-  $("search").value = S.loc && !S.auto ? (S.loc.name || "") : (S.auto && S.loc ? S.loc.name || "" : "");
-  $("search").placeholder = S.auto ? "Using device location" : "Search a city…";
+  $("method").value = S.method; $("methodLbl").textContent = SHORT[S.method] || S.method;
+  $("highLat").value = S.highLat; $("highLatLbl").textContent = $("highLat").selectedOptions[0].text;
+  document.querySelectorAll("#asrSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === String(S.asr)));
+  document.querySelectorAll("#fmtSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.fmt));
+  $("auto").setAttribute("aria-checked", S.auto);
+  $("cityRow").classList.toggle("muted", S.auto);
+  $("search").value = S.loc ? (S.loc.name || "") : ""; if (S.auto) $("search").placeholder = "Using this device's location";
+  else $("search").placeholder = "Search a city…";
   const perm = "Notification" in window ? Notification.permission : "unsupported";
-  $("notify").checked = S.notify && perm === "granted";
+  $("notify").setAttribute("aria-checked", S.notify && perm === "granted");
   $("notify").disabled = perm === "unsupported" || perm === "denied";
-  $("notifyBox").classList.toggle("muted", !$("notify").checked);
   if (perm === "denied") $("notifyHint").textContent = "Notifications are blocked for this site. Allow them in your browser settings, then come back.";
-  if (perm === "unsupported") $("notifyHint").textContent = "This browser doesn't support notifications. On iPhone, add AthanTime to your Home Screen first.";
-  document.querySelectorAll("[data-p]").forEach(i => i.checked = !!S.perPrayer[i.dataset.p]);
-  $("lead").value = S.lead; $("chime").checked = S.chime;
-  document.querySelectorAll("#fmt button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === S.fmt));
+  if (perm === "unsupported") $("notifyHint").textContent = "This browser can't show notifications. On iPhone, add AthanTime to your Home Screen (Share → Add to Home Screen), then open it from there.";
+  if (S.loc) $("latFoot").textContent = Math.abs(S.loc.lat) >= 45
+    ? `You're at ${Math.abs(S.loc.lat).toFixed(0)}° latitude, so this rule keeps Fajr and Isha sensible in summer.`
+    : "Only matters above about 45° latitude, where twilight can last all night in summer.";
 }
-$("method").onchange = e => { S.method = e.target.value; save("method"); recalc(); };
-$("asr").onchange = e => { S.asr = e.target.value; save("asr"); recalc(); };
-$("highLat").onchange = e => { S.highLat = e.target.value; save("highLat"); recalc(); };
-$("auto").onchange = e => { S.auto = e.target.checked; save("auto"); syncSettings(); if (S.auto) locate(); else { $("locHint").textContent = ""; $("search").focus(); } };
-$("notify").onchange = async e => {
-  if (e.target.checked && Notification.permission !== "granted") {
-    const p = await Notification.requestPermission();
-    if (p !== "granted") { e.target.checked = false; S.notify = false; save("notify"); syncSettings(); return; }
-  }
-  S.notify = e.target.checked; save("notify"); syncSettings(); scheduleNotifications(); render();
+$("method").onchange = e => { S.method = e.target.value; save("method"); syncSettings(); recalc(); };
+$("highLat").onchange = e => { S.highLat = e.target.value; save("highLat"); syncSettings(); recalc(); };
+$("asrSeg").onclick = e => { const v = e.target.dataset.v; if (!v) return; S.asr = v; save("asr"); syncSettings(); recalc(); };
+$("fmtSeg").onclick = e => { const v = e.target.dataset.v; if (!v) return; S.fmt = v; save("fmt"); syncSettings(); render(); buildArc(); };
+$("auto").onclick = () => { setAuto(!S.auto); if (S.auto) locate(); else { $("locHint").textContent = ""; $("search").value = ""; $("search").focus(); } };
+async function enableNotify() {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission !== "granted") { const p = await Notification.requestPermission(); if (p !== "granted") { syncSettings(); return false; } }
+  S.notify = true; save("notify"); syncSettings(); scheduleNotifications(); return true;
+}
+$("notify").onclick = async () => {
+  audio(); // unlock sound on this tap
+  if (S.notify && Notification.permission === "granted") { S.notify = false; save("notify"); syncSettings(); scheduleNotifications(); }
+  else await enableNotify();
+  render();
 };
-$("perPrayer").onchange = e => { const k = e.target.dataset.p; if (!k) return; S.perPrayer[k] = e.target.checked; save("perPrayer"); scheduleNotifications(); render(); };
-$("lead").onchange = e => { S.lead = e.target.value; save("lead"); scheduleNotifications(); };
-$("chime").onchange = e => { S.chime = e.target.checked; save("chime"); if (S.chime) chime(); };
-$("testNote").onclick = () => notify("AthanTime", "Notifications are working. You'll be reminded at each prayer you've turned on.");
-$("fmt").onclick = e => { const v = e.target.dataset && e.target.dataset.v; if (!v) return; S.fmt = v; save("fmt"); syncSettings(); render(); };
+$("testNote").onclick = async () => { audio(); if (Notification.permission !== "granted" && !(await enableNotify())) return; notify("AthanTime", "Alerts are working. You'll hear this at each prayer you've turned on.", "bell"); };
+
+/* ---------- per-prayer alert ---------- */
+let editing = null;
+function openAlert(k) {
+  editing = k; const p = today.find(x => x.key === k), n = curNext(nowD()).next;
+  const when = p.time && p.time > nowD() ? "Today" : "Tomorrow";
+  const t = when === "Today" ? p.time : tomorrow.find(x => x.key === k).time;
+  $("alertWhen").textContent = `${when} · ${plain(t)}`;
+  $("alertName").textContent = `${NAMES[k]} alert`; $("alertAr").textContent = ARABIC[k];
+  $("offSub").textContent = `No alert for ${NAMES[k]}`;
+  syncAlert(); openSheet("alertSheet"); audio();
+}
+function syncAlert() {
+  const a = S.alerts[editing];
+  document.querySelectorAll("#modes .opt").forEach(b => b.setAttribute("aria-checked", b.dataset.m === a.mode));
+  document.querySelectorAll("#leads button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.l === +a.lead));
+  $("leadGroup").classList.toggle("muted", a.mode === "off");
+}
+$("modes").onclick = async e => {
+  const b = e.target.closest(".opt"); if (!b) return;
+  S.alerts[editing].mode = b.dataset.m; save("alerts"); syncAlert();
+  if (b.dataset.m !== "off") { playSound(b.dataset.m); if (!S.notify) await enableNotify(); }
+  scheduleNotifications();
+};
+$("leads").onclick = e => { const l = e.target.dataset.l; if (l == null) return; S.alerts[editing].lead = +l; save("alerts"); syncAlert(); scheduleNotifications(); };
 
 /* =========================================================
-   Boot & ticking
+   Boot
    ========================================================= */
 syncSettings();
-recalc(); updateSky();
-if (S.auto) locate(); else if (!S.loc) openSheet();
-
-setInterval(() => {
-  if (nowD().toDateString() !== calcDay) recalc(); else render();
-  updateSky();
-}, 30000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) { recalc(); updateSky(); } });
-addEventListener("resize", () => updateSky());
+recalc();
+if (S.auto && !Q.get("lat")) locate(); else if (!S.loc) openSheet("settings");
+setInterval(() => { if (nowD().toDateString() !== calcDay) recalc(); else { render(); updateSky(); } }, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) recalc(); });
+if ("ResizeObserver" in window) new ResizeObserver(() => { buildArc(); updateSky(); }).observe($("sky"));
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { buildArc(); updateSky(); }, 120); });
+if (document.fonts) document.fonts.ready.then(() => { buildArc(); updateSky(); });
+setTimeout(() => document.documentElement.classList.add("anim"), 1500);
+if (location.hash === "#settings") openSheet("settings");
+else if (/^#alert-(\w+)$/.test(location.hash) && today.length && NAMES[location.hash.slice(7)]) openAlert(location.hash.slice(7));
 </script>
 </body>
 </html>
