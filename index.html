@@ -32,7 +32,7 @@
     background-color: var(--bot); overflow: hidden; -webkit-font-smoothing: antialiased;
   }
   /* Full-bleed sky: covers the whole screen, including the home-indicator area on iPhone */
-  body::before { content: ""; position: fixed; top: -60px; left: 0; right: 0; bottom: -160px; z-index: 0; pointer-events: none;
+  body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%); }
   button { font: inherit; color: inherit; }
   #stars { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 2s; }
