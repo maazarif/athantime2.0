@@ -1,5 +1,5 @@
 // AthanTime 2.0 service worker: offline cache + notification clicks
-const CACHE = "athantime2-v3";
+const CACHE = "athantime2-v4";
 const ASSETS = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {

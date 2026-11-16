@@ -29,12 +29,15 @@
   body {
     margin: 0; height: 100%; min-height: 100dvh;
     font-family: "Jost", Futura, "Century Gothic", system-ui, sans-serif; color: var(--ink);
-    background: transparent; overflow: hidden; -webkit-font-smoothing: antialiased;
+    background-color: var(--bot); overflow: hidden; -webkit-font-smoothing: antialiased;
   }
   /* Full-bleed sky: covers the whole screen, including the home-indicator area on iPhone */
-  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 100lvh; min-height: 100%; z-index: -1;
+  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; height: 100lvh; min-height: 100%; z-index: 0; pointer-events: none;
     background: linear-gradient(180deg, var(--top) 0%, var(--mid) 55%, var(--bot) 100%); }
   button { font: inherit; color: inherit; }
+  /* Safari (iOS 26) tints the area under its bottom toolbar from fixed elements at the bottom edge.
+     Give it the sky's bottom colour so that strip blends in instead of showing a solid block. */
+  .edge-bottom { position: fixed; left: 0; right: 0; bottom: 0; height: calc(env(safe-area-inset-bottom, 0px) + 2px); background: var(--bot); pointer-events: none; z-index: 0; }
   #stars { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 2s; }
   .app { position: relative; height: 100%; height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column;
          padding: calc(var(--st) + 14px) 10px calc(var(--sb) + 14px); }
@@ -142,6 +145,7 @@
 </style>
 </head>
 <body>
+<div class="edge-bottom" aria-hidden="true"></div>
 <canvas id="stars" aria-hidden="true"></canvas>
 <div class="app">
   <header>
